@@ -10,7 +10,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * График работы тренера, график проведения тренеровок, режим работы зала.
+ * Временной интервал работы тренера, проведения тренеровок, работы зала.
  */
 @Data
 @NoArgsConstructor
@@ -22,12 +22,21 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @Embeddable
 public class TimePeriod {
+    /**
+     * Дата и время начала интервала.
+     */
     @Column(name = "start_time")
     private LocalDateTime startTime;
 
+    /**
+     * Дата и время окончания интервала.
+     */
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
+    /**
+     * Доступность временного интервала.
+     */
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default

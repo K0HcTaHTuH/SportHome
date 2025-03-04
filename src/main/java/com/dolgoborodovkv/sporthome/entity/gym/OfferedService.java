@@ -2,23 +2,25 @@ package com.dolgoborodovkv.sporthome.entity.gym;
 
 import com.dolgoborodovkv.sporthome.entity.TimePeriod;
 import com.dolgoborodovkv.sporthome.entity.enums.OfferedServiceStatus;
-import com.dolgoborodovkv.sporthome.entity.users.Couch;
+import com.dolgoborodovkv.sporthome.entity.users.Coach;
 import com.dolgoborodovkv.sporthome.entity.users.Customer;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Сущность предлогаемой пользователю услуги.
+ */
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"rooms", "customers"})
+@EqualsAndHashCode(exclude = {"rooms", "customers"})
 @Entity
 @Table(name = "offered_services")
 public class OfferedService {
@@ -27,53 +29,70 @@ public class OfferedService {
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Цена предлагаемой услуги.
+     */
     @Column(name = "price", nullable = false)
-    private BigDecimal price;
+    private Integer price;
 
     /**
-     * длительность тренировки
+     * Длительность тренировки.
      */
     @Column(name = "duration")
     private Duration duration;
 
+    /**
+     * Временной интервал предлагаемой тренировки.
+     */
     @Embedded
     private TimePeriod timePeriod;
 
     /**
-     * статус предоставления услуги
+     * Статус предоставления услуги.
      */
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private OfferedServiceStatus offeredServiceStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "room_id")
-    private Room room;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "service_id")
-    private Service service;
-
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "couch_id")
-    private Couch couch;
-
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(name = "selected_service",
+    /**
+     * Список комнат в которых предлагаются услуги.
+     */
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(name = "offered_service_rooms",
             joinColumns = @JoinColumn(name = "offered_service_id"),
-            inverseJoinColumns = @JoinColumn(name = "customer_id")
+            inverseJoinColumns = @JoinColumn(name = "rooms_id")
     )
+    @Builder.Default
+    private Set<Room> rooms = new HashSet<>();
+
+    /**
+     * Услуга выбранная клиентом.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "fitness_service_id")
+    private FitnessService fitnessService;
+
+    /**
+     * Тренер доступный для проведения тренеровки.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "coach_id")
+    private Coach coach;
+
+    /**
+     * Список записавшихся клиентов.
+     */
+    @ManyToMany(mappedBy = "offeredServices")
     @Builder.Default
     private Set<Customer> customers = new HashSet<>();
 
-    public void addCustomer(@NonNull @Nonnull Customer customer) {
-        customers.add(customer);
-        customer.getOfferedServices().add(this);
+    public void addRoom(@NonNull @Nonnull Room room) {
+        rooms.add(room);
+        room.getOfferedServices().add(this);
     }
 
-    public void removeCustomer(@NonNull @Nonnull Customer customer) {
-        customers.remove(customer);
-        customer.getOfferedServices().remove(this);
+    public void removeRoom(@NonNull @Nonnull Room room) {
+        rooms.remove(room);
+        room.getOfferedServices().remove(this);
     }
 }

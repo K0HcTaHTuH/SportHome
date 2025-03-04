@@ -9,8 +9,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum UserCountType {
+    /**
+     * Индивидуальная тренеровка.
+     */
     INDIVIDUAL("individual training"),
+
+    /**
+     * Тренеровка с ограниченным количеством клиентов.
+     */
     GROUP("group training"),
+
+    /**
+     * Тренеровка без ограничения по количеству клиентов.
+     */
     UNLIMITED("training without limit of participants");
+
     private final String description;
 }

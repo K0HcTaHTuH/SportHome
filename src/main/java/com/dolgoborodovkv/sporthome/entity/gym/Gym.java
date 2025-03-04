@@ -11,12 +11,15 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Сущность для регистрации спортивного зала.
+ */
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString(exclude = {"imageUris", "addresses", "services", "records"})
-@EqualsAndHashCode
+@ToString(exclude = {"imageUris", "rooms", "opinions", "bankAccounts"})
+@EqualsAndHashCode(exclude = {"imageUris", "rooms", "opinions", "bankAccounts"})
 @Entity
 @Table(name = "gyms")
 public class Gym {
@@ -25,18 +28,45 @@ public class Gym {
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Название спортивного зала.
+     */
     @Column(name = "name")
     private String name;
 
+    /**
+     * Описание спортивного зала.
+     */
     @Column(name = "description")
     private String description;
 
+    /**
+     * Временной период работы спортивного зала.
+     */
     @Embedded
     private TimePeriod timePeriod;
 
+    /**
+     * Корпоративный телефон для связи с клиентами.
+     */
     @Column(name = "business_phone")
     private Integer businessPhone;
 
+    /**
+     * Владелец спортивного зала.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Owner owner;
+
+    /**
+     * Адрес спортивного зала.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Address address;
+
+    /**
+     * Фотографии спортивного зала для предоставления пользователям.
+     */
     @ElementCollection
     @CollectionTable(
             name = "image_uris",
@@ -45,20 +75,23 @@ public class Gym {
     @Builder.Default
     private Set<String> imageUris = new HashSet<>();//TODO сделать интеграцию с серивисом хранения фотографий
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Owner owner;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Address address;
-
+    /**
+     * Список комнат спортивного зала.
+     */
     @OneToMany(mappedBy = "gym", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Room> rooms = new HashSet<>();
 
+    /**
+     * Список отзывов оставленных клиентами.
+     */
     @OneToMany(mappedBy = "gym", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Opinion> opinions = new HashSet<>();
 
+    /**
+     * Список банковских аккаунтов для оплаты услуг.
+     */
     @OneToMany(mappedBy = "gym", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<BankAccount> bankAccounts = new HashSet<>();

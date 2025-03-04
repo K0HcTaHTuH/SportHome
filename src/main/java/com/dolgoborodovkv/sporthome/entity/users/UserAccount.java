@@ -3,6 +3,9 @@ package com.dolgoborodovkv.sporthome.entity.users;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * Кошелек пользователя хранящий баланс поинтов.
+ */
 @Data
 @NoArgsConstructor
 @Builder
@@ -15,12 +18,16 @@ public class UserAccount {
     @Id
     @Column(name = "user_id")
     private Long userId;
+
     /**
-     * баланс поинтов за которые пользователь может приобритать услуги
+     * Баланс поинтов за которые пользователь может приобритать услуги.
      */
     @Column(name = "point_balance")
     private Integer pointBalance;
 
+    /**
+     * Пользователь - владелец кошелька.
+     */
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     private Customer customer;

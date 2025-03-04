@@ -2,7 +2,6 @@ package com.dolgoborodovkv.sporthome.entity.gym;
 
 import com.dolgoborodovkv.sporthome.entity.TimePeriod;
 import com.dolgoborodovkv.sporthome.entity.enums.RoomStatus;
-import com.dolgoborodovkv.sporthome.entity.enums.TimePeriodStatus;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,12 +9,15 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Комната в которой возможно или невозможно оказание услуг.
+ */
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"trainingHours", "services", "offeredServices"})
+@EqualsAndHashCode(exclude = {"trainingHours", "services", "offeredServices"})
 @Entity
 @Table(name = "rooms")
 public class Room {
@@ -24,51 +26,62 @@ public class Room {
     @Column(name = "id")
     private int id;
 
+    /**
+     * Статус доступности комнаты для оказываемых услуг.
+     */
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private RoomStatus roomStatus = RoomStatus.POSSIBLE;
+    private RoomStatus roomStatus = RoomStatus.FREE;
 
+    /**
+     * Фитнес зал к которому относится комната.
+     */
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "gym_id")
     private Gym gym;
 
+    /**
+     * Список временных интервалов в которые возможно оказать услугу.
+     */
     @ElementCollection(targetClass = TimePeriod.class, fetch = FetchType.LAZY)
-    @CollectionTable(name = "working_hours", joinColumns = @JoinColumn(name = "services_id"))
+    @CollectionTable(name = "acceptable_period", joinColumns = @JoinColumn(name = "room_id"))
     @Builder.Default
-    private Set<TimePeriod> trainingHours = new HashSet<>();
+    private Set<TimePeriod> acceptableTrainingPeriod = new HashSet<>();
 
-    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    /**
+     * Список допустмых в комнате услуг.
+     */
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(name = "room_fitness_services",
+            joinColumns = @JoinColumn(name = "room_id"),
+            inverseJoinColumns = @JoinColumn(name = "fitness_services_id")
+    )
     @Builder.Default
-    private Set<Service> services = new HashSet<>();
+    private Set<FitnessService> fitnessServices = new HashSet<>();
 
-    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    /**
+     * Список предлагаемых услуг для которых выбрана комната.
+     */
+    @ManyToMany(mappedBy = "rooms")
     @Builder.Default
     private Set<OfferedService> offeredServices = new HashSet<>();
 
-    public void addWorkingHours(@NonNull @Nonnull TimePeriod timePeriod) {
-        trainingHours.add(timePeriod);
+    public void addTimePeriod(@NonNull @Nonnull TimePeriod timePeriod) {
+        acceptableTrainingPeriod.add(timePeriod);
     }
 
-    public void removeWorkingHours(@NonNull @Nonnull TimePeriod timePeriod) {
-        trainingHours.remove(timePeriod);
+    public void removeTimePeriod(@NonNull @Nonnull TimePeriod timePeriod) {
+        acceptableTrainingPeriod.remove(timePeriod);
     }
 
-    public void addServices(@NonNull @Nonnull Service service) {
-        services.add(service);
-        service.setRoom(this);
-    }
-    public void removeServices(@NonNull @Nonnull Service service) {
-        services.remove(service);
-        service.setRoom(null);
+    public void addFitnessService(@NonNull @Nonnull FitnessService fitnessService) {
+        fitnessServices.add(fitnessService);
+        fitnessService.getRooms().add(this);
     }
 
-    public void addOfferedServices(@NonNull @Nonnull OfferedService offeredService) {
-        offeredServices.add(offeredService);
-        offeredService.setRoom(this);
-    }
-    public void removeOfferedServices(@NonNull @Nonnull OfferedService offeredService) {
-        offeredServices.remove(offeredService);
-        offeredService.setRoom(null);
+    public void removeFitnessService(@NonNull @Nonnull FitnessService fitnessService) {
+        fitnessServices.remove(fitnessService);
+        fitnessService.getRooms().remove(this);
     }
 }

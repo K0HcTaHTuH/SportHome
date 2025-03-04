@@ -6,6 +6,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Сущность для работы и хранения отзывов оставленных клиентами.
+ */
 @Data
 @NoArgsConstructor
 @Builder
@@ -20,18 +23,33 @@ public class Opinion {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "date_of_revocation")
-    private LocalDateTime dateOfRevocation;
+    /**
+     * Дата и время оставленного отзыва.
+     */
+    @Column(name = "post_date")
+    private LocalDateTime postDate;
 
+    /**
+     * Коментарий оставленного отзыва.
+     */
     @Column(name = "comment")
     private String comment;
 
+    /**
+     * Рейтинг оставленного отзыва.
+     */
     @Column(name = "rating")
-    private Double rating;
+    private Integer rating;
 
+    /**
+     * Автор оставленного отзыва.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     private Customer author;
 
+    /**
+     * Зал которому оставлен отзыв.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     private Gym gym;
 }

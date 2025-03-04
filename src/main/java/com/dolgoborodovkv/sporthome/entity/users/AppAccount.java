@@ -8,12 +8,15 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Класс для сбора и хранения комиссии за покупку поинтов и других услуг.
+ */
 @Data
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"bankAccounts"})
+@EqualsAndHashCode(exclude = {"bankAccounts"})
 @Entity
 @Table(name = "app_accounts")
 public class AppAccount {
@@ -22,6 +25,9 @@ public class AppAccount {
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Список банковских аккаунтов с которых поступает комиссия.
+     */
     @OneToMany(mappedBy = "appAccount", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<BankAccount> bankAccounts = new HashSet<>();
